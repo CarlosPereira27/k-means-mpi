@@ -50,3 +50,7 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+databases/image/segmentation.data.bin
+databases/iris/iris.data.bin
+databases/letter-recognition/letter-recognition.data.bin
