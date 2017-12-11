@@ -1,0 +1,12 @@
+Comandos da aplicação 'write_database_bin'
+./write_database_bin <path_database> <class_column>
+./write_database_bin "databases/image/segmentation.data" 0
+./write_database_bin "databases/iris/iris.data" 4
+./write_database_bin "databases/letter-recognition/letter-recognition.data" 0
+
+
+Comandos da aplicação 'app'
+mpirun -np <num_process> ./app <path_database_bin> <num_features> <num_classes>
+mpirun -np 5 ./app "databases/image/segmentation.data.bin" 19 7
+mpirun -np 5 ./app "databases/iris/iris.data.bin" 19 7
+mpirun -np 5 ./app "databases/letter-recognition/letter-recognition.data.bin" 19 7
