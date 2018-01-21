@@ -52,5 +52,20 @@ Mkfile.old
 dkms.conf
 
 databases/image/segmentation.data.bin
+databases/image/segmentation.data.clusters
+databases/image/segmentation.data.bin.clusters
+databases/image/segmentation.data10Times.bin
+databases/image/segmentation.data10Times.clusters
+databases/image/segmentation.data10Times.bin.clusters
 databases/iris/iris.data.bin
+databases/iris/iris.data.bin.clusters
+databases/iris/iris.data.clusters
 databases/letter-recognition/letter-recognition.data.bin
+databases/letter-recognition/letter-recognition.data.bin.clusters
+databases/letter-recognition/letter-recognition.data.clusters
+databases/letter-recognition/letter-recognition.data10Times.bin
+databases/letter-recognition/letter-recognition.data10Times.bin.clusters
+databases/letter-recognition/letter-recognition.data10Times.clusters
+
+bin
+build
