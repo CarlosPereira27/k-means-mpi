@@ -1,12 +1,23 @@
-Comandos da aplicação 'write_database_bin'
-./write_database_bin <path_database> <class_column>
-./write_database_bin "databases/image/segmentation.data" 0
-./write_database_bin "databases/iris/iris.data" 4
-./write_database_bin "databases/letter-recognition/letter-recognition.data" 0
+Comandos da aplicação 'bin_database_writer'
+bin/./bin_database_writer <path_database> <class_column>
+bin/./bin_database_writer "databases/iris/iris.data" 4
+bin/./bin_database_writer "databases/image/segmentation.data" 0
+bin/./bin_database_writer "databases/image/segmentation.data10Times" 0
+bin/./bin_database_writer "databases/letter-recognition/letter-recognition.data" 0
+bin/./bin_database_writer "databases/letter-recognition/letter-recognition.data10Times" 0
 
 
-Comandos da aplicação 'app'
-mpirun -np <num_process> ./app <path_database_bin> <num_features> <num_classes>
-mpirun -np 5 ./app "databases/image/segmentation.data.bin" 19 7
-mpirun -np 5 ./app "databases/iris/iris.data.bin" 19 7
-mpirun -np 5 ./app "databases/letter-recognition/letter-recognition.data.bin" 19 7
+Comandos da aplicação 'kmeans_mpi_app'
+mpirun -np <num_process> bin/./kmeans_mpi_app <path_database_bin> <num_features> <num_classes>
+mpirun -np 4 bin/./kmeans_mpi_app "databases/iris/iris.data.bin" 4 3
+mpirun -np 4 bin/./kmeans_mpi_app "databases/image/segmentation.data.bin" 19 7
+mpirun -np 4 bin/./kmeans_mpi_app "databases/image/segmentation.data10Times.bin" 19 7
+mpirun -np 4 bin/./kmeans_mpi_app "databases/letter-recognition/letter-recognition.data.bin" 16 26
+mpirun -np 4 bin/./kmeans_mpi_app "databases/letter-recognition/letter-recognition.data10Times.bin" 16 26
+
+bin/./kmeans_seq_app <path_database> <class_column> <num_classes>
+bin/./kmeans_seq_app "databases/iris/iris.data" 4 3
+bin/./kmeans_seq_app "databases/image/segmentation.data" 0 7
+bin/./kmeans_seq_app "databases/image/segmentation.data10Times" 0 7
+bin/./kmeans_seq_app "databases/letter-recognition/letter-recognition.data" 0 26
+bin/./kmeans_seq_app "databases/letter-recognition/letter-recognition.data10Times" 0 26

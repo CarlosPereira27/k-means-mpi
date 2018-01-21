@@ -1,0 +1,8 @@
+class name,class code
+BRICKFACE,0
+SKY,1
+FOLIAGE,2
+CEMENT,3
+WINDOW,4
+PATH,5
+GRASS,6
