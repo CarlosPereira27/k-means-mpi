@@ -8,13 +8,13 @@
 path_database="databases/image/segmentation.data"
 
 # Índice da coluna que contém a classe na base de dados
-class_column="0"
+class_column=0
 
 # Quantidade de classes diferentes da base de dados
-class_count="7"
+class_count=7
 
 # Quantidade de features das instâncias da base de dados
-num_features="19"
+num_features=19
 
 # --------------------------------------------------------
 # ---------------- END Parâmetros ------------------------

@@ -8,20 +8,20 @@
 path_databases=("databases/image/segmentation.data" "databases/image/segmentation.data10Times" "databases/letter-recognition/letter-recognition.data" "databases/letter-recognition/letter-recognition.data10Times")
 
 # Lista de colunas onde as classes estão localizadas (índices)
-class_columns=("0" "0" "0" "0")
+class_columns=(0 0 0 0)
 
 # Lista da quantidade de classes nas bases de dados
-class_count=("7" "7" "26" "26")
+class_count=(7 7 26 26)
 
 # Lista da quantidade de features nas bases de dados
-num_features=("19" "19" "16" "16")
+num_features=(19 19 16 16)
 
 # Quantidade de vezes que executará cada cenário de teste
 qty_test=10
 
 # Lista de quantidade de processos utilizados para cada cenário de teste
-num_procs=("2" "3" "4" "6" "8" "10" "12" "16" "20" "24" "32" "40")
-# num_procs=("2" "4")
+num_procs=(2 3 4 6 8 10 12 16 20 24 32 40)
+# num_procs=(2 4)
 
 # Lista de arquivos de saída csv para os tempos de processamento
 out_files=("reports/segmentation.csv" "reports/segmentation_10times.csv" "reports/letter-recognition.csv" "reports/letter-recognition_10times.csv")
