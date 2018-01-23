@@ -9,17 +9,16 @@
 #include <kmeans_seq.h>
 
 
-
 /**
- * Índice da próxima instância a ser requisitada pelo método determinístico.
- * */
-int next_instance_deterministic = 0;
-
-/**
+ * Define os centroids iniciais com pontos aleatórios entre os limites de cada 
+ * feature da base de dados.
  * 
+ * @param K
+ *      quantidade de clusters
+ * 
+ * @return centroids iniciais
  * */
-double** KMeansSeq_CompStartCentroidsX(int K) {
-    double** startCentroids = (double**) malloc(K * sizeof(double*));
+void KMeansSeq_DefineStartCentroidsX(int K) {
     double minValues[database->features_length];
     double maxValues[database->features_length];
     int N = database->instances->used;
@@ -40,28 +39,25 @@ double** KMeansSeq_CompStartCentroidsX(int K) {
             }
         }
     }
-    // printf("\nMinValues:\n");
-    // printPoint(minValues, database->features_length);
-    // printf("\nMaxValues:\n");
-    // printPoint(maxValues, database->features_length);
-    // printf("\n--------------------------------\n");
     double offset[database->features_length];
     for (j = 0; j < database->features_length; j++) {
         offset[j] = (maxValues[j] - minValues[j]) / (K + 1);
     }
     for (i = 0; i < K; i++) {
-        startCentroids[i] = (double*) malloc(database->features_length * sizeof(double));
+        centroids[i] = (double*) malloc(database->features_length * sizeof(double));
         for (j = 0; j < database->features_length; j++) {
-            startCentroids[i][j] = minValues[j] + (offset[j] * (i + 1));
+            centroids[i][j] = minValues[j] + (offset[j] * (i + 1));
         }
     }
-    return startCentroids;
 }
 
 
 /**
- * Recalcula os centroids
+ * Recalcula os centroids dos clusteres com base na média dos elementos 
+ * de cada cluster.
  * 
+ * @param K
+ *      quantidade de clusteres
  * */
 void KMeansSeq_RecalcClusterCentroids(int K) {
     int cluster_count[K];
@@ -90,33 +86,36 @@ void KMeansSeq_RecalcClusterCentroids(int K) {
     }
 }
 
-
 /**
- * Pega os K primeiros pontos como centroids.
+ * Define os centroids iniciais, gerando K índices de instâncias para
+ * definir como centroids iniciais.
  * 
- * @param database
  * @param K
+ *      quantidade de clusters
  * 
- * @return
+ * @return centroids iniciais
  * */
-double** KMeansSeq_CompStartCentroidsDeterministic(int K) {
-    double** start_centroids = (double**) malloc(K * sizeof(double*));
-    for (next_instance_deterministic = 0; next_instance_deterministic < K; 
-            next_instance_deterministic++) {
-        start_centroids[next_instance_deterministic] = 
-            KMeans_GetCopyFeatures(next_instance_deterministic);
+void KMeansSeq_DefineStartCentroids(int K) {
+    int* start_centroids_index = KMeans_GenKIndexes(K, database->instances->used);
+    int i = 0;
+    for (i = 0; i < K; i++) {
+        centroids[i] = 
+            KMeans_GetCopyFeatures(start_centroids_index[i]);
     }
-
-    return start_centroids;
+    free(start_centroids_index);
+    next_instance_deterministic = K;
 }
 
 /**
  * Escreve o relatório com o resultado do KMeans em uma arquivo que possui o seguinte
  * caminho -> '$caminho_banco_de_dados' + CLUSTERS_SUFIX.
+ * O relatório informa os K clusters criados com seus respectivos centroids e coleção 
+ * de índices das instâncias que pertencem a este cluster. 
  * 
- * @param path_database caminho da base de dados analisada
- * @param K quantidade de clusters
-
+ * @param path_database
+ *      caminho da base de dados analisada
+ * @param K
+ *      quantidade de clusters
  * */
 void KMeans_WriteReport(const char* path_database, int K) {
     int len = strlen(path_database);
@@ -147,11 +146,25 @@ void KMeans_WriteReport(const char* path_database, int K) {
     fclose(file);
 }
 
+/**
+ * Calcula a diferença entre tempos na estrutura timeval retornando o
+ * tempo em microssegundos.
+ * 
+ * @param start
+ *      tempo inicial
+ * @param end
+ *      tempo final
+ * 
+ * @return diferença entre tempo inicial e final em microssegundos
+ * */
 long KMeansSeq_DifTime(struct timeval start, struct timeval end) {
     return (end.tv_sec * 1000000 + end.tv_usec) 
         - (start.tv_sec * 1000000 + start.tv_usec);
 }
 
+/**
+ * Executa o KMeans de forma sequencial.
+ * */
 int KMeansSeq_RunKmeans(int argc, char **argv)
 {
     double func_obj_line = 0;
@@ -166,7 +179,9 @@ int KMeansSeq_RunKmeans(int argc, char **argv)
 
    // inicializa a semente de aleatoriedade
     srand(time(NULL));
-
+    next_instance_deterministic = 0;
+    KMeans_GenKIndexes = Util_GenerateDeterministicKIntValues;
+    
     if (argc != 4) {
         printf("A quantidade de argumentos é inválida!\n");
         exit(0);
@@ -176,7 +191,8 @@ int KMeansSeq_RunKmeans(int argc, char **argv)
     gettimeofday(&read_end, NULL);
     K = atoi(argv[3]);
 
-    centroids = KMeansSeq_CompStartCentroidsDeterministic(K);
+    centroids = (double**) malloc(K * sizeof(double*));
+    KMeansSeq_DefineStartCentroids(K);
     func_obj_line = KMeans_CompFuncObj(K);
     // printf("OBJ(%d) -> %lf\n", count_it, func_obj_line);
     // KMeans_PrintCentroids(K);

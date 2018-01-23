@@ -12,8 +12,10 @@
  * outras colunas (features) devem conter valores numéricos.
  * ATUALMENTE NÃO SUPORTA VALORES AUSENTES.
  * 
- * @param database_path caminho da base de dados em csv
- * @param class_column índice da coluna que contém a classe das instâncias, caso
+ * @param database_path
+ *      caminho da base de dados em csv
+ * @param class_column
+ *      índice da coluna que contém a classe das instâncias, caso
  *      a base de dados não seja classificada, esse índice deve ser -1
  * 
  * @return base de dados extraída do arquivo csv
@@ -46,8 +48,10 @@ Database DatabaseReader_ReadDatabase(const char* database_path, int class_column
  * Define a quantidade de features dos elementos de uma base de dados com base em um
  * elemento dessa base de dados.
  * 
- * @param line linha que representa uma instância da base de dados
- * @param database base de dados que terá sua quantidade de features definida
+ * @param line
+ *      linha que representa uma instância da base de dados
+ * @param database
+ *      base de dados que terá sua quantidade de features definida
  * */
 void DatabaseReader_SetFeaturesLenght(char* line, Database database) {
     char* line_cp = malloc(sizeof(char) * (strlen(line) + 1));
@@ -67,10 +71,13 @@ void DatabaseReader_SetFeaturesLenght(char* line, Database database) {
  * Extraí uma instância da base de dados a partir de uma determinada linha 
  * que a representa.
  * 
- * @param line linha que representa a instância da base de dados
- * @param class_column índice da coluna que contém a classe da instância, caso
+ * @param line
+ *      linha que representa a instância da base de dados
+ * @param class_column
+ *      índice da coluna que contém a classe da instância, caso
  *      a base de dados não seja classificada, esse índice deve ser -1
- * @param features_length quantidade de features da base de dados
+ * @param features_length
+ *      quantidade de features da base de dados
  * 
  * @return instância extraída da linha da base de dados
  * */

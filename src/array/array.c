@@ -9,9 +9,11 @@
  * Cria um lista usando um array redimensionável de tamanho inicial igual 
  * a initial_size;
  * 
- * @param initial_size tamanho inicial do array redimensionável
+ * @param initial_size
+ *      tamanho inicial do array redimensionável
  * 
- * @return array redimensionável criado
+ * @return array
+ *      redimensionável criado
  * */
 ArrayList ArrayList_Create(size_t initial_size) {
     ArrayList array_list = (ArrayList) malloc(sizeof(S_ArrayList));
@@ -26,8 +28,10 @@ ArrayList ArrayList_Create(size_t initial_size) {
 /**
  * Adiciona um elemento no final da lista.
  * 
- * @param array_list lista, onde elemento será adicionado
- * @param element elemento a ser adicionado no lista
+ * @param array_list
+ *      lista, onde elemento será adicionado
+ * @param element
+ *      elemento a ser adicionado no lista
  * */
 void ArrayList_Add(ArrayList array_list, void* element) {
     if (array_list->used == array_list->size) {
@@ -40,8 +44,10 @@ void ArrayList_Add(ArrayList array_list, void* element) {
 /**
  * Recupera elemento que está na posição index da lista.
  * 
- * @param array_list lista, onde irá recuperar elemento
- * @param index índice do elemento a ser recuperado
+ * @param array_list
+ *      lista, onde irá recuperar elemento
+ * @param index
+ *      índice do elemento a ser recuperado
  * 
  * @return elemento recuperado
  * */
@@ -53,7 +59,8 @@ void* ArrayList_Get(ArrayList array_list, int index) {
  * Libera a memória alocada para a estrutura de uma determinada lista 
  * implementado por um array redimensionável.
  * 
- * @param array_list lista em que a memória será liberada.
+ * @param array_list
+ *      lista em que a memória será liberada.
  * */
 void ArrayList_Destroy(ArrayList array_list) {
     free(array_list->data);
@@ -65,8 +72,10 @@ void ArrayList_Destroy(ArrayList array_list) {
  * por um array redimensionável, e também libera a memória usada para alocar seus 
  * elementos.
  * 
- * @param array_list lista em que a memória será liberada.
- * @param free_element função que libera a memória dos elementos contidos na lista.
+ * @param array_list
+ *      lista em que a memória será liberada.
+ * @param free_element
+ *      função que libera a memória dos elementos contidos na lista.
  * */
 void ArrayList_DestroyDeeply(ArrayList array_list, void (*free_element)(void*)) {
     size_t i = 0;

@@ -8,7 +8,8 @@
 /**
  * Recupera o nome da base de dados binária de uma determinada base de dados.
  * 
- * @param database_name nome da base de dados original
+ * @param database_name
+ *      nome da base de dados original
  * 
  * @return nome da base de dados binária
  * */
@@ -25,7 +26,8 @@ char* BinDatabaseWriter_GetBinDatabaseName(const char* database_name) {
 /**
  * Recupera o nome da base de dados das classes de uma determinada base de dados.
  * 
- * @param database_name nome da base de dados original
+ * @param database_name
+ *      nome da base de dados original
  * 
  * @return nome da base de dados das classes 
  * */
@@ -44,8 +46,10 @@ char* BinDatabaseWriter_GetClassDatabaseName(const char* database_name) {
  * é a sua posição na lista. Caso uma classe ainda não esteja contida na lista,
  * ela é inserida na lista e seu código é a posição em que foi inserida.
  * 
- * @param classes lista que contém as classes já encontradas
- * @param class_name  nome da classe a ser recuperado o código
+ * @param classes
+ *      lista que contém as classes já encontradas
+ * @param class_name
+ *      nome da classe a ser recuperado o código
  * 
  * @return código da classe
  * */
@@ -67,8 +71,10 @@ int BinDatabaseWriter_GetClassCod(ArrayList classes, const char* class_name) {
 /**
  * Escreve a base de dados das classes no arquivo.
  * 
- * @param database_name nome da base dados original
- * @param classes lista que contém as classes da base de dados
+ * @param database_name
+ *      nome da base dados original
+ * @param classes
+ *      lista que contém as classes da base de dados
  * */
 void BinDatabaseWriter_WriteClassDatabase(char* database_name, ArrayList classes) {
     char* class_database_name = BinDatabaseWriter_GetClassDatabaseName(database_name);
@@ -94,9 +100,12 @@ void BinDatabaseWriter_WriteClassDatabase(char* database_name, ArrayList classes
 /**
  * Escreve a base de dados binária no arquivo.
  * 
- * @param database_name nome da base dados a ser escrita de forma binária
- * @param classes lista que contém as classes da base de dados
- * @param database base de dados a ser escrita de forma binária
+ * @param database_name
+ *      nome da base dados a ser escrita de forma binária
+ * @param classes
+ *      lista que contém as classes da base de dados
+ * @param database
+ *      base de dados a ser escrita de forma binária
  * */
 void BinDatabaseWriter_WriteBinDatabase(char* database_name, ArrayList classes, Database database) {
     char* bin_database_name = BinDatabaseWriter_GetBinDatabaseName(database_name);

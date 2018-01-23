@@ -8,30 +8,14 @@
 #include <kmeans_mpi.h>
 
 /**
- * Índice da próxima instância a ser requisitada pelo método determinístico.
- * */
-int next_instance_deterministic = 0;
-
-/**
- * Função que irá requisitar as próximas instâncias. Esta função pode ser o método
- * determinístico ou o método aleatório.
- * */
-double* (*KMeans_RequestNextInstanceFeatures)(void) = KMeansMPI_DeterministicRequestInstance;
-
-/**
- * Função que entrega os K índices de instâncias para os primeiros centroids. 
- * Esta função pode ser o método determinístico ou o método aleatório.
- * */
-int* (*KMeans_GenKIndexes)(int, int) = Util_GenerateDeterministicKIntValues;
-
-
-
-/**
- * Realiza a requisição das features de uma instância ao processo que mantém essa instância.
- * Com o retorno da instância pelo processo que mantém a instância a função retorna a mesma.
- * Essa requisição é síncrona.
+ * MESTRE
+ *      Se possui a instância requisitada, retorna uma cópia de suas features.
+ *      Senão, requisita instância ao processo TRABALHADOR que mantém essa instância. 
+ *      Com o retorno da instância pelo processo que mantém a instância a função
+ *      retorna a mesma. Essa requisição é síncrona.
  * 
- * @param index índice da instância requisitada
+ * @param index
+ *      índice da instância requisitada
  * 
  * @return features da instância requisitada.
  * */
@@ -79,9 +63,11 @@ double* KMeansMPI_RandomRequestInstance(void) {
 }
 
 /**
- * Envia uma instância requisitada para o processo MESTRE.
+ * TRABALHADOR
+ *      Envia uma instância requisitada para o processo MESTRE.
  * 
- * @param index índice da instância requisitada
+ * @param index
+ *      índice da instância requisitada
  * */
 void KMeansMPI_RespondInstance(int index) {
     Instance instance = (Instance) database->instances->data[index];
@@ -92,7 +78,8 @@ void KMeansMPI_RespondInstance(int index) {
 }
 
 /**
- * MESTRE notifica os TRABALHADORES que não haverá mais requisições.
+ * MESTRE
+ *      notifica os TRABALHADORES que não haverá mais requisições.
  * */
 void KMeansMPI_NotifyNoMoreRequest(void) {
     int i;
@@ -100,16 +87,17 @@ void KMeansMPI_NotifyNoMoreRequest(void) {
 
     for (i = 0; i < nprocs; i++) {
         if (i != MASTER_RANK) {
-            // INFORMANDO o processo de rank i que não haverá mais requisições de 
-            // instâncias por parte do MESTRE.
+            // INFORMANDO o processo de rank i que não haverá mais requisições 
+            // realizadas pelo processo MESTRE.
             MPI_Send(&no_more_request, 1, MPI_INT, i, TAG, MPI_COMM_WORLD);
         }
     }
 }
 
 /**
- * WORKERS entram em estado de escuta, esperando por requisições de instâncias do MESTRE.
- * E atendem a essas requisições. Até o MESTRE informar que não haverá mais requisições.
+ * TRABALHADORES
+ *      Entram em estado de escuta, esperando por requisições de instâncias do MESTRE.
+ *      Atendem a essas requisições até o MESTRE informar que não haverá mais requisições.
  * */
 void KMeansMPI_ListenInstanceRequest() {
     int index_request;
@@ -127,84 +115,12 @@ void KMeansMPI_ListenInstanceRequest() {
     }
 }
 
-
-
 /**
- * TRABALHADOR responde ao MESTRE os elementos do cluster solicitado.
+ * MESTRE envia os centroids atualizados para todos processos 
+ * TRABALHADORES via broadcast.
  * 
- * @param cluster_id id do cluster que deverá contar as instâncias. Id é também
- *    o índice do cluster
- * */
-void KMeansMPI_RespondCluster(int cluster_id) {
-    int sub_cluster_length = KMeans_CountInstancesInCluster(cluster_id);
-    int* sub_cluster = KMeans_IndexInstancesInCluster(cluster_id, sub_cluster_length, 
-            (num_instances_g / nprocs) * rank);
-    // ENVIANDO tamanho do cluster para o MESTRE
-    MPI_Send(&sub_cluster_length, 1, MPI_INT, 
-        MASTER_RANK, TAG, MPI_COMM_WORLD);
-    // ENVIANDO cluster para o MESTRE
-    MPI_Send(sub_cluster, sub_cluster_length, MPI_INT, 
-        MASTER_RANK, TAG, MPI_COMM_WORLD);
-}
-
-/**
- * WORKERS entram em estado de escuta, esperando por requisições de clusters do MESTRE.
- * E atendem a essas requisições. Até o MESTRE informar que não haverá mais requisições.
- * */
-void KMeansMPI_ListenClusterRequest() {
-    int indexRequest;
-
-    // RECEBENDO requisição de cluster de índice indexRequest do processo mestre.
-    MPI_Recv(&indexRequest, 1, MPI_INT, MASTER_RANK, 
-        TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    // Enquanto houver requisições do processo mestre, elas serão atendidas.
-    while (indexRequest != NO_MORE_REQUEST) {
-        // ENVIANDO cluster de índice indexRequest para o processo mestre.
-        KMeansMPI_RespondCluster(indexRequest);
-        // RECEBENDO requisição de cluster de índice indexRequest do processo mestre.
-        MPI_Recv(&indexRequest, 1, MPI_INT, MASTER_RANK, 
-            TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    }
-}
-
-/**
- * MESTRE define os centroids iniciais, solicitando as instâncias necessárias
- * para isso. Por fim, notifica os TRABALHADORES que não haverá mais requisições
- * de instâncias.
- * */
-void KMeansMPI_DefineStartCentroids(int K) {
-    for (next_instance_deterministic = 0; next_instance_deterministic < K; 
-            next_instance_deterministic++) {
-        centroids[next_instance_deterministic] = 
-            KMeansMPI_RequestInstanceFeatures(next_instance_deterministic);
-    }
-    KMeansMPI_NotifyNoMoreRequest();
-}
-
-/**
- * MESTRE realiza a computação dos centroids iniciais, solicitando as instâncias necessárias
- * para isso. Após computar os centroids, atualiza os centroids dos TRABALHADORES por
- * broadcast.  
- * */
-void KMeansMPI_CompStartCentroids(int K) {
-    int i;
-
-    centroids = (double**) malloc(K * sizeof(double*));
-    for (i = 0; i < K; i++) {
-        centroids[i] = (double*) malloc(database->features_length * sizeof(double));
-    }
-    if (rank == MASTER_RANK) {
-        KMeansMPI_DefineStartCentroids(K);
-    } else {
-        KMeansMPI_ListenInstanceRequest();
-    }
-    KMeansMPI_BroadcastUpdatedCentroids(K);
-}
-
-/**
- * Envia os centroids atualizados para todos processos via broadcast.
- * 
- * @param K quantidade de clusteres
+ * @param K
+ *      quantidade de clusteres
  * */
 void KMeansMPI_BroadcastUpdatedCentroids(int K) {
     int i;
@@ -216,11 +132,77 @@ void KMeansMPI_BroadcastUpdatedCentroids(int K) {
 }
 
 /**
- * Atualiza todos centroids como a média dos elementos do seu respectivo cluster.
+ * MESTRE
+ *      Define os centroids iniciais, gerando K índices de instâncias para
+ *      definir como centroids iniciais. Solicita as instâncias que não 
+ *      possui para o processo TRABALHADOR que a possui. Por fim, notifica os 
+ *      TRABALHADORES que não haverá mais requisições de instâncias.
+ * TRABALHADORES
+ *      Escutam e respondem as requisições de instâncias do MESTRE.
  * 
- * @param K quantidade de clusters
- * @param cluster_count quantidade de elementos em cada cluster
- * @param cluster_sum_elements soma dos elementos de cada cluster
+ * @param K
+ *      quantidade de clusters
+ * */
+void KMeansMPI_DefineStartCentroids(int K) {
+    int* start_centroids_index = KMeans_GenKIndexes(K, num_instances_g);
+    int i = 0;
+    for (i = 0; i < K; i++) {
+        centroids[i] = 
+            KMeansMPI_RequestInstanceFeatures(start_centroids_index[i]);
+    }
+    free(start_centroids_index);
+    KMeansMPI_NotifyNoMoreRequest();
+    next_instance_deterministic = K;
+}
+
+/**
+ * MESTRE
+ *      Define os centroids iniciais
+ * TRABALHADORES
+ *      Escutam e respondem as requisições de instâncias do MESTRE
+ * MESTRE envia centroids iniciais via broadcast a todos 
+ * processos TRABALHADORES 
+ * 
+ * @param K
+ *      quantidade de clusters
+ * */
+void KMeansMPI_CompStartCentroids(int K) {
+    int i;
+
+    centroids = (double**) malloc(K * sizeof(double*));
+    if (rank == MASTER_RANK) {
+        KMeansMPI_DefineStartCentroids(K);
+    } else {
+        for (i = 0; i < K; i++) {
+            centroids[i] = (double*) malloc(database->features_length * sizeof(double));
+        }
+        KMeansMPI_ListenInstanceRequest();
+    }
+    KMeansMPI_BroadcastUpdatedCentroids(K);
+}
+
+/**
+ * Atualiza todos centroids como a média dos elementos do seu respectivo cluster.
+ * Caso algum cluster esteja vazio, usa uma instância como centroid para esse cluster.
+ * 
+ * MESTRE
+ *      Para cada cluster nos clusters
+ *          Se cluster possui elementos então
+ *              calcula o centroid do cluster
+ *          senão
+ *              usa uma instância como centroid para esse cluster
+ *              se não possui instância então solicita instância ao processo
+ *              que mantém essa instância
+ * TRABALHADORES
+ *      Escutam e repondem requisições de instância realizadas pelo MESTRE até
+ *      o mestre informar que não haverá mais requisições
+ *      
+ * @param K
+ *      quantidade de clusters
+ * @param cluster_count
+ *      quantidade de elementos em cada cluster
+ * @param cluster_sum_elements
+ *      soma dos elementos de cada cluster
  * */
 void KMeansMPI_UpdateCentroids(int K, int* cluster_count, double** cluster_sum_elements) {
     int i;
@@ -237,9 +219,25 @@ void KMeansMPI_UpdateCentroids(int K, int* cluster_count, double** cluster_sum_e
 }
 
 /**
- * Recalcula os centroids dos clusteres com base na média dos elementos do cluster.
+ * Recalcula os centroids dos clusteres com base na média dos elementos 
+ * de cada cluster.
  * 
- * @param K quantidade de clusteres
+ * Calcula a lista de pontos que representam o somatório das instâncias
+ * pertencentes a cada cluster.
+ * Calcula a lista de tamanhos de cada cluster.
+ * Reduz o somatório das listas de pontos que representam o somatório
+ * das instâncias pertencentes a cada cluster no processo MESTRE.
+ * Reduz o somatório das listas de tamanhos de cada cluster no processo
+ * MESTRE.
+ * MESTRE
+ *      Atualiza os pontos centroids.
+ * TRABALHADORES
+ *      Escutam e repondem requisições de instância realizadas pelo MESTRE até
+ *      o mestre informar que não haverá mais requisições.
+ * MESTRE envia novos centroids via broadcast a todos processos TRABALHADORES.
+ * 
+ * @param K
+ *      quantidade de clusteres
  * */
 void KMeansMPI_RecalcClusterCentroids(int K) {
     int* cluster_count = KMeans_SetCentroidsAsSumElements(K);
@@ -258,7 +256,7 @@ void KMeansMPI_RecalcClusterCentroids(int K) {
         MASTER_RANK, MPI_COMM_WORLD);
     free(cluster_count);
     for (i = 0; i < K; i++) {
-        // Reduz o somatório dos elementos pertencentes ao centroid i. 
+        // Reduz o somatório dos elementos pertencentes ao cluster i. 
         MPI_Reduce(centroids[i], sum_cluster_elements[i], database->features_length, 
             MPI_DOUBLE, MPI_SUM, MASTER_RANK, MPI_COMM_WORLD);
     }
@@ -273,14 +271,65 @@ void KMeansMPI_RecalcClusterCentroids(int K) {
     KMeansMPI_BroadcastUpdatedCentroids(K);
 }
 
+/**
+ * TRABALHADOR
+ *      responde ao MESTRE o tamanho e os índices das instâncias pertencentes
+ *      ao cluster solicitado.
+ * 
+ * @param cluster_id
+ *      id do cluster solicitado
+ * */
+void KMeansMPI_RespondCluster(int cluster_id) {
+    int sub_cluster_length = KMeans_CountInstancesInCluster(cluster_id);
+    int* sub_cluster = KMeans_IndexInstancesInCluster(cluster_id, sub_cluster_length, 
+            (num_instances_g / nprocs) * rank);
+    // ENVIANDO tamanho do cluster para o MESTRE
+    MPI_Send(&sub_cluster_length, 1, MPI_INT, 
+        MASTER_RANK, TAG, MPI_COMM_WORLD);
+    // ENVIANDO cluster para o MESTRE
+    MPI_Send(sub_cluster, sub_cluster_length, MPI_INT, 
+        MASTER_RANK, TAG, MPI_COMM_WORLD);
+}
+
+/**
+ * TRABALHADORES
+ *      Entram em estado de escuta, esperando por requisições de clusters do MESTRE.
+ *      Atendem a essas requisições até o MESTRE informar que não haverá mais requisições.
+ * */
+void KMeansMPI_ListenClusterRequest() {
+    int index_request;
+
+    // RECEBENDO requisição de cluster de índice index_request do processo mestre.
+    MPI_Recv(&index_request, 1, MPI_INT, MASTER_RANK, 
+        TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    // Enquanto houver requisições do processo mestre, elas serão atendidas.
+    while (index_request != NO_MORE_REQUEST) {
+        // ENVIANDO cluster de índice index_request para o processo mestre.
+        KMeansMPI_RespondCluster(index_request);
+        // RECEBENDO requisição de cluster de índice index_request do processo mestre.
+        MPI_Recv(&index_request, 1, MPI_INT, MASTER_RANK, 
+            TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    }
+}
 
 /**
  * Escreve o relatório com o resultado do KMeans em uma arquivo que possui o seguinte
  * caminho -> '$caminho_banco_de_dados' + CLUSTERS_SUFIX.
+ * O relatório informa os K clusters criados com seus respectivos centroids e coleção 
+ * de índices das instâncias que pertencem a este cluster. 
+ * MESTRE
+ *      Escreve relatório, e requisita tamanho e índices de instâncias de clusters aos 
+ *      processos TRABALHADORES.
+ *      Avisa trabalhadores que não haverá mais requisições.
+ * TRABALHADORES
+ *      Escutam e respondem as requisições de tamanho e índices de instâncias de clusters
+ *      ao processo MESTRE até o mesmo informar que não haverá mais requisições.
  * 
- * @param path_database caminho da base de dados analisada
- * @param K quantidade de clusters
-
+ * 
+ * @param path_database
+ *      caminho da base de dados analisada
+ * @param K
+ *      quantidade de clusters
  * */
 void KMeansMPI_WriteReport(const char* path_database, int K) {
     int len = strlen(path_database);
@@ -311,8 +360,9 @@ void KMeansMPI_WriteReport(const char* path_database, int K) {
             if (j == MASTER_RANK) {
                 continue;
             }
+            // SOLICITA tamanho do cluster i e array com índíces das instâncias do 
+            // cluster i ao processo j
             MPI_Send(&i, 1, MPI_INT, j, TAG, MPI_COMM_WORLD);
-            // RECEBENDO instância de índice index do processo de rank rank_request.
             MPI_Recv(&sub_cluster_length, 1, MPI_INT, j, 
                 TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
             free(sub_cluster);
@@ -329,9 +379,10 @@ void KMeansMPI_WriteReport(const char* path_database, int K) {
 }
 
 
+/**
+ * Executa o KMeans de forma paralela com multiprocessos.
+ * */
 int KMeansMPI_RunKmeans(int argc, char **argv) {
-    //KMeans_RequestNextInstanceFeatures = KMeansMPI_DeterministicRequestInstance;
-    //KMeans_GenKIndexes = Util_GenerateDeterministicKIntValues;
     double func_obj_line_local;
     double func_obj_line_global = 0;
     double func_obj;
@@ -342,8 +393,11 @@ int KMeansMPI_RunKmeans(int argc, char **argv) {
     double write_start_time;
 
 
-    // inicializa a semente de aleatoriedade
+    // Inicializa a semente de aleatoriedade
     srand(time(NULL));
+    next_instance_deterministic = 0;
+    KMeans_GenKIndexes = Util_GenerateDeterministicKIntValues;
+    KMeans_RequestNextInstanceFeatures = KMeansMPI_DeterministicRequestInstance;
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
@@ -417,4 +471,3 @@ int KMeansMPI_RunKmeans(int argc, char **argv) {
 
     return 0;
 }
-
