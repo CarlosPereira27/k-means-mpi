@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+#!/usr/bin/python3
+
 import sys
 import os.path
 import random
@@ -20,26 +23,26 @@ class Instance:
         self.clazz = clazz
         self.features = features
 
-    def toString(self, indexClazz):
+    def toString(self, index_clazz):
         """
         Representação em string da instância no padrão para salvar a base de dados
         no padrão csv.
 
-        @param indexClazz : int
+        @param index_clazz : int
             índice da coluna em que a classe deve ficar
         """
-        featuresLength = len(self.features)
-        strRepresent = ''
-        if indexClazz == 0:
-            strRepresent += self.clazz
+        features_length = len(self.features)
+        str_represent = ''
+        if index_clazz == 0:
+            str_represent += self.clazz
         else:
-            strRepresent += str(self.features[0])
-            for i in range(1, indexClazz):
-                strRepresent += ',' + str(self.features[i])
-            strRepresent += ',' + self.clazz
-        for i in range(indexClazz, featuresLength):
-            strRepresent += ',' + str(self.features[i])
-        return strRepresent + '\n'
+            str_represent += str(self.features[0])
+            for i in range(1, index_clazz):
+                str_represent += ',' + str(self.features[i])
+            str_represent += ',' + self.clazz
+        for i in range(index_clazz, features_length):
+            str_represent += ',' + str(self.features[i])
+        return str_represent + '\n'
 
 
 class Database:
@@ -47,13 +50,13 @@ class Database:
     Representação de uma base de dados
     """
 
-    def __init__(self, path_database, indexClazz, onlyint):
+    def __init__(self, path_database, index_clazz, onlyint):
         """
         Construtor de uma base de dados.
 
         @param path_database : str
             caminho do arquivo que contém a base de dados em csv
-        @param indexClazz : int
+        @param index_clazz : int
             índice da coluna em que a classe deve ficar
         @param onlyint : bool
             informa se as features das instâncias são formadas apenas
@@ -61,7 +64,7 @@ class Database:
         """
         self.path_database = path_database
         self.instances = []
-        self.indexClazz = indexClazz
+        self.index_clazz = index_clazz
         self.onlyint = onlyint
         self.loadDatabase()
         
@@ -76,13 +79,13 @@ class Database:
             attrs = line.split(',')
             N = len(attrs)
             features = []
-            clazz = attrs[self.indexClazz]
-            for i in range(self.indexClazz):
+            clazz = attrs[self.index_clazz]
+            for i in range(self.index_clazz):
                 if self.onlyint:
                     features.append(int(attrs[i]))
                 else:
                     features.append(float(attrs[i]))
-            for i in range(self.indexClazz + 1, N):
+            for i in range(self.index_clazz + 1, N):
                 if self.onlyint:
                     features.append(int(attrs[i]))
                 else:
@@ -95,7 +98,7 @@ class Database:
         Imprime a base de dados em csv
         """
         for instance in self.instances:
-            print (instance.toString(self.indexClazz))
+            print (instance.toString(self.index_clazz))
             
     def addInstance(self, instance):
         """
@@ -115,12 +118,12 @@ class Database:
             lista com os menores valores de cada feature
         """
         N = len(self.instances[0].features)
-        smallestFeature = [ sys.float_info.max ] * N
+        smallest_features = [ sys.float_info.max ] * N
         for instance in self.instances:
             for i in range(N):
-                if smallestFeature[i] > instance.features[i]:
-                    smallestFeature[i] = instance.features[i]
-        return smallestFeature
+                if smallest_features[i] > instance.features[i]:
+                    smallest_features[i] = instance.features[i]
+        return smallest_features
 
     def getBiggestFeatures(self):
         """
@@ -131,12 +134,12 @@ class Database:
             lista com os maiores valores de cada feature
         """
         N = len(self.instances[0].features)
-        biggestFeature = [ 0 ] * N
+        biggest_features = [ 0 ] * N
         for instance in self.instances:
             for i in range(N):
-                if biggestFeature[i] < instance.features[i]:
-                    biggestFeature[i] = instance.features[i]
-        return biggestFeature
+                if biggest_features[i] < instance.features[i]:
+                    biggest_features[i] = instance.features[i]
+        return biggest_features
 
     def getClazzes(self):
         """
@@ -162,28 +165,28 @@ class Database:
         """
         return clazzes[random.randint(0, len(clazzes) - 1)]
 
-    def randomFloat(self, minValue, maxValue):
+    def randomFloat(self, min_value, max_value):
         """
-        Sorteia um número real aleatório entre minValue e maxValue.
+        Sorteia um número real aleatório entre min_value e max_value.
 
-        @param minValue: float
+        @param min_value: float
             valor mínimo a ser gerado
-        @param maxValue: float
+        @param max_value: float
             valor máximo a ser gerado
 
         @return : float
             valor real gerado
         """
-        return minValue + (random.random() * (maxValue - minValue))
+        return min_value + (random.random() * (max_value - min_value))
 
-    def generateInstance(self, smallestFeature, biggestFeature, clazzes):
+    def generateInstance(self, smallest_features, biggest_features, clazzes):
         """
         Gera uma instância aleatória. As features são geradas com valores no intervalo
         dos valores das features da base de dados.
 
-        @param smallestFeature: list<float>
+        @param smallest_features: list<float>
             lista com os menores valores encontradas em cada feature
-        @param biggestFeature: list<float>
+        @param biggest_feature: list<float>
             lista com os maiores valores encontradas em cada feature
         @param clazzes: list<str>
             lista de classes contidas na base de dados
@@ -191,13 +194,13 @@ class Database:
         @return : Instance
             instância gerada
         """
-        featuresLength = len(self.instances[0].features)
-        features = [ 0 ] * featuresLength
-        for i in range(featuresLength):
+        features_length = len(self.instances[0].features)
+        features = [ 0 ] * features_length
+        for i in range(features_length):
             if self.onlyint:
-                features[i] = random.randint(smallestFeature[i], biggestFeature[i])
+                features[i] = random.randint(smallest_features[i], biggest_features[i])
             else:
-                features[i] = self.randomFloat(smallestFeature[i], biggestFeature[i])
+                features[i] = self.randomFloat(smallest_features[i], biggest_features[i])
         return Instance(self.randomClazz(clazzes), features)
         
 
@@ -209,20 +212,20 @@ class Database:
         @param multiplier : int
             multiplicador do tamanho da base de dados
         """
-        path_bigger_database = self.path_database + str(multiplier) + 'Times'
+        path_bigger_database = self.path_database + "_" + str(multiplier) + 'times'
         file = open(path_bigger_database,'w')
 
-        smallestFeature = self.getSmallestFeatures()
-        biggestFeature = self.getBiggestFeatures()
+        smallest_features = self.getSmallestFeatures()
+        biggest_features = self.getBiggestFeatures()
         clazzes = self.getClazzes()
 
         for instance in self.instances:
-            file.write(instance.toString(self.indexClazz))
+            file.write(instance.toString(self.index_clazz))
         
-        qtyInstances =  (multiplier - 1) * len(self.instances)
-        print (qtyInstances)
-        for i in range(qtyInstances):
-            file.write(self.generateInstance(smallestFeature, biggestFeature, clazzes).toString(self.indexClazz))
+        qty_instances =  (multiplier - 1) * len(self.instances)
+        print (qty_instances)
+        for i in range(qty_instances):
+            file.write(self.generateInstance(smallest_features, biggest_features, clazzes).toString(self.index_clazz))
 
 
         file.close()
@@ -232,10 +235,10 @@ def expandLetterDatabase():
     Script de expansão da base de dados letter-recognition em 10 vezes.
     """
     path_database = "databases/letter-recognition/letter-recognition.data"
-    indexClazz = 0
+    index_clazz = 0
     multiplier = 10
     onlyint = True
-    database = Database(path_database, indexClazz, onlyint) 
+    database = Database(path_database, index_clazz, onlyint) 
     database.generateBiggerDatabase(multiplier)
 
 def expandSegmentationDatabase():
@@ -243,10 +246,10 @@ def expandSegmentationDatabase():
     Script de expansão da base de dados segmentation em 10 vezes.
     """
     path_database = "databases/image/segmentation.data"
-    indexClazz = 0
+    index_clazz = 0
     multiplier = 10
     onlyint = False
-    database = Database(path_database, indexClazz, onlyint) 
+    database = Database(path_database, index_clazz, onlyint) 
     database.generateBiggerDatabase(multiplier)
 
 

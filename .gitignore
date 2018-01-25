@@ -67,5 +67,10 @@ databases/letter-recognition/letter-recognition.data10Times.bin
 databases/letter-recognition/letter-recognition.data10Times.bin.clusters
 databases/letter-recognition/letter-recognition.data10Times.clusters
 
+reports_gcloud/segmentation/*.png
+reports_gcloud/segmentation_10times/*.png
+reports_gcloud/letter-recognition/*.png
+reports_gcloud/letter-recognition_10times/*.png
+
 bin
 build

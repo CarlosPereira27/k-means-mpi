@@ -174,6 +174,7 @@ int KMeansSeq_RunKmeans(int argc, char **argv)
     struct timeval start, end;
     struct timeval read_start, read_end;
     struct timeval write_start;
+    BOOLEAN debug = FALSE;
 
     gettimeofday(&start, NULL);
 
@@ -182,9 +183,15 @@ int KMeansSeq_RunKmeans(int argc, char **argv)
     next_instance_deterministic = 0;
     KMeans_GenKIndexes = Util_GenerateDeterministicKIntValues;
     
-    if (argc != 4) {
+    if (argc < 4 || argc > 5) {
         printf("A quantidade de argumentos é inválida!\n");
         exit(0);
+    }
+    if (argc == 5) {
+        if (strcmp("-d", argv[4]) == 0 || 
+                strcmp("--debug", argv[4]) == 0) {
+            debug = TRUE;
+        }
     }
     gettimeofday(&read_start, NULL);
     database = DatabaseReader_ReadDatabase(argv[1], atoi(argv[2]));
@@ -194,15 +201,19 @@ int KMeansSeq_RunKmeans(int argc, char **argv)
     centroids = (double**) malloc(K * sizeof(double*));
     KMeansSeq_DefineStartCentroids(K);
     func_obj_line = KMeans_CompFuncObj(K);
-    // printf("OBJ(%d) -> %lf\n", count_it, func_obj_line);
-    // KMeans_PrintCentroids(K);
+    if (debug) {
+        printf("OBJ(%d) -> %.5e\n", count_it, func_obj_line);
+        KMeans_PrintCentroids(K);
+    }
     do {
         func_obj = func_obj_line;
         KMeansSeq_RecalcClusterCentroids(K);
         func_obj_line = KMeans_CompFuncObj(K);
         count_it++;
-        // printf("OBJ(%d) -> %lf\n", count_it, func_obj_line);
-        // KMeans_PrintCentroids(K);
+        if (debug) {
+            printf("OBJ(%d) -> %.5e\n", count_it, func_obj_line);
+            KMeans_PrintCentroids(K);
+        }
     } while (func_obj - func_obj_line > THRESHOLD);
     
     gettimeofday(&write_start, NULL);
@@ -214,7 +225,9 @@ int KMeansSeq_RunKmeans(int argc, char **argv)
     long time_write = KMeansSeq_DifTime(write_start, end);
     long time_kmeans = time_total - (time_write + time_read);
 
-    printf("%ld,%ld,%ld,%ld", time_read, time_write, time_kmeans, time_total);
+    if (!debug) {
+        printf("%ld,%ld,%ld,%ld", time_read, time_write, time_kmeans, time_total);
+    }
     // printf("Tempo total      ->   %ldus\n", time_total);
     // printf("Tempo de leitura ->   %ldus\n", time_read);
     // printf("Tempo de escrita ->   %ldus\n", time_write);

@@ -391,6 +391,7 @@ int KMeansMPI_RunKmeans(int argc, char **argv) {
     double start_time, end_time;
     double read_start_time, read_end_time;
     double write_start_time;
+    BOOLEAN debug = FALSE;
 
 
     // Inicializa a semente de aleatoriedade
@@ -405,9 +406,15 @@ int KMeansMPI_RunKmeans(int argc, char **argv) {
         start_time = MPI_Wtime();
     }
     
-    if (argc != 4) {
+    if (argc < 4 || argc > 5) {
         printf("A quantidade de argumentos é inválida!\n");
         exit(0);
+    }
+    if (argc == 5) {
+        if (strcmp("-d", argv[4]) == 0 || 
+                strcmp("--debug", argv[4]) == 0) {
+            debug = TRUE;
+        }
     }
     K = atoi(argv[3]);
     if (rank == MASTER_RANK) {
@@ -423,10 +430,10 @@ int KMeansMPI_RunKmeans(int argc, char **argv) {
     // Reduz o somatório da função objetivo para todos processos.
     MPI_Allreduce(&func_obj_line_local, &func_obj_line_global, 1, MPI_DOUBLE, 
         MPI_SUM, MPI_COMM_WORLD);
-    // if (rank == MASTER_RANK) {
-    //     printf("OBJ(%d) -> %lf\n", count_it, func_obj_line_global);
-    //     // KMeans_PrintCentroids(K);
-    // }
+    if (rank == MASTER_RANK && debug) {
+        printf("OBJ(%d) -> %.5e\n", count_it, func_obj_line_global);
+        KMeans_PrintCentroids(K);
+    }
     do {
         func_obj = func_obj_line_global;
         KMeansMPI_RecalcClusterCentroids(K);
@@ -436,10 +443,10 @@ int KMeansMPI_RunKmeans(int argc, char **argv) {
         MPI_Allreduce(&func_obj_line_local, &func_obj_line_global, 1, MPI_DOUBLE, 
             MPI_SUM, MPI_COMM_WORLD);
         count_it++;
-        // if (rank == MASTER_RANK) {
-        //     printf("OBJ(%d) -> %lf\n", count_it, func_obj_line_global);
-        //     // KMeans_PrintCentroids(K);
-        // }
+        if (rank == MASTER_RANK && debug) {
+            printf("OBJ(%d) -> %.5e\n", count_it, func_obj_line_global);
+            KMeans_PrintCentroids(K);
+        }
     } while (func_obj - func_obj_line_global > THRESHOLD);
     
     // if (rank == MASTER_RANK) {
@@ -459,8 +466,9 @@ int KMeansMPI_RunKmeans(int argc, char **argv) {
         long time_read = (read_end_time - read_start_time) * 1000000;
         long time_write = (end_time - write_start_time) * 1000000;
         long time_kmeans = time_total - (time_write + time_read);
-
-        printf("%ld,%ld,%ld,%ld", time_read, time_write, time_kmeans, time_total);
+        if (!debug) {
+            printf("%ld,%ld,%ld,%ld", time_read, time_write, time_kmeans, time_total);
+        }
         // printf("Tempo total      ->   %ldus\n", time_total);
         // printf("Tempo de leitura ->   %ldus\n", time_read);
         // printf("Tempo de escrita ->   %ldus\n", time_write);

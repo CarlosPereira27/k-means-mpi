@@ -161,9 +161,9 @@ void Util_CallocMatrix(void** matrix, int num_lines, int num_elements_per_line,
  * */
 void Util_PrintPoint(double* point, int length) {
     int i = 0;
-    printf("%lf", point[i]);
+    printf("%.5e", point[i]);
     for (i++; i < length; i++) {
-        printf(",%lf", point[i]);
+        printf(",%.5e", point[i]);
     }
 }
 
