@@ -17,10 +17,10 @@ class_count=(7 7 26 26)
 num_features=(19 19 16 16)
 
 # Quantidade de vezes que executará cada cenário de teste
-qty_test=10
+qty_test=1
 
 # Lista de quantidade de processos utilizados para cada cenário de teste
-num_procs=(2 3 4 6 8 10 12 16 20 24 32 40)
+#num_procs=(2 3 4 6 8 10 12 16 20 24 32 40)
 num_procs=(40 2 32 3 24 4 20 6 16 8 12 10)
 # num_procs=(2 4)
 
