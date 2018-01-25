@@ -45,8 +45,3 @@ for i in $(seq 0 $((${#path_databases[@]}-1))); do
         fi
     done
 done
-
-
-
-bin/./kmeans_seq_app databases/image/segmentation.data 0 7 -d > out_seq.txt
-mpirun -mca btl ^openib -np 2 bin/./kmeans_mpi_app databases/image/segmentation.data.bin 19 7 -d > out_par.txt

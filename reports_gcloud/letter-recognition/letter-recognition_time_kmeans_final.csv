@@ -1,4 +1,4 @@
-nprocs,mean,confidence_interval,speedup,efficiency
+nprocs,time_mean,confidence_interval,speedup,efficiency
 1,5168396,[5131587 - 5205205],1.000000,1.000000
 2,2604423,[2597342 - 2611504],1.984469,0.992234
 3,1724656,[1720838 - 1728474],2.996769,0.998923
