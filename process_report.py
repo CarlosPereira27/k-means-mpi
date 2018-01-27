@@ -304,7 +304,7 @@ def plotChartGeneral(filename, xdata, ydata0, leg0, ydata1, leg1, ydata2, leg2, 
         rótulo do eixo y
     """
     lw_val = 3
-    mew_val = 5
+    mew_val = 4
     line0, = plt.plot(xdata, ydata0, 'bo-', lw = lw_val, mew = mew_val, label=leg0)
     line1, = plt.plot(xdata, ydata1, 'ro-', lw = lw_val, mew = mew_val, label=leg1)
     line2, = plt.plot(xdata, ydata2, 'yo-', lw = lw_val, mew = mew_val, label=leg2)
@@ -315,6 +315,49 @@ def plotChartGeneral(filename, xdata, ydata0, leg0, ydata1, leg1, ydata2, leg2, 
     plt.savefig(os.path.join(filename + ".png"), dpi=300)
     plt.gcf().clear()
 
+def plotChartGeneralIdealLine(filename, xdata, ydata0, leg0, ydata1, leg1, ydata2, leg2, \
+        ydata3, leg3, xlabel, ylabel, yideal):
+    """
+    Desenha um gráfico com quatro linhas para valores de y diferente e insere suas legendas.
+
+    @param filename : str
+        nome do arquivo em que o gráfico será salvo
+    @param xdata : list
+        dados do eixo x
+    @param ydata0 : list
+        dados do eixo y, linha 0 
+    @param leg0 : str
+        legenda para a linha 0
+    @param ydata1 : list
+        dados do eixo y, linha 1 
+    @param leg1 : str
+        legenda para a linha 1
+    @param ydata2 : list
+        dados do eixo y, linha 2 
+    @param leg2 : str
+        legenda para a linha 2
+    @param ydata3 : list
+        dados do eixo y, linha 3 
+    @param leg3 : str
+        legenda para a linha 3
+    @param xlabel : str
+        rótulo do eixo x
+    @param ylabel : str
+        rótulo do eixo y
+    """
+    lw_val = 3
+    mew_val = 4
+    line0, = plt.plot(xdata, ydata0, 'bo-', lw = lw_val, mew = mew_val, label=leg0)
+    line1, = plt.plot(xdata, ydata1, 'ro-', lw = lw_val, mew = mew_val, label=leg1)
+    line2, = plt.plot(xdata, ydata2, 'yo-', lw = lw_val, mew = mew_val, label=leg2)
+    line3, = plt.plot(xdata, ydata3, 'go-', lw = lw_val, mew = mew_val, label=leg3)
+    line4, = plt.plot(xdata, yideal, 'k--', lw = 2.2, mew = 0, label="ideal")
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.legend(handles=[line0, line1, line2, line3, line4]);
+    plt.savefig(os.path.join(filename + ".png"), dpi=300)
+    plt.gcf().clear()
+
 def generateGeneralCharts(reports):
     """
     Gera os gráficos gerais do relatório.
@@ -322,6 +365,12 @@ def generateGeneralCharts(reports):
     @param reports : list<Report>
         lista de relatórios de cada base de dados
     """
+    speedup_ideal = []
+    efficiency_ideal = []
+    for nprocs in reports[0].nprocs:
+        speedup_ideal.append(nprocs)
+    for i in range(len(reports[0].nprocs)):
+        efficiency_ideal.append(1)
     qty_times = len(out_files_suffix)
     for i in range(qty_times):
         plotChartGeneral(directory_report + "report_" + out_files_suffix[i] + "_mean", \
@@ -330,18 +379,18 @@ def generateGeneralCharts(reports):
             reports[2].time_mean[i], databases[2], \
             reports[3].time_mean[i], databases[3], \
             "nprocs", "tempo")
-        plotChartGeneral(directory_report + "report_" + out_files_suffix[i] + "_speedup", \
+        plotChartGeneralIdealLine(directory_report + "report_" + out_files_suffix[i] + "_speedup", \
             reports[0].nprocs, reports[0].speedup[i], databases[0], \
             reports[1].speedup[i], databases[1], \
             reports[2].speedup[i], databases[2], \
             reports[3].speedup[i], databases[3], \
-            "nprocs", "speedup")
-        plotChartGeneral(directory_report + "report_" + out_files_suffix[i] + "_efficiency", \
+            "nprocs", "speedup", speedup_ideal)
+        plotChartGeneralIdealLine(directory_report + "report_" + out_files_suffix[i] + "_efficiency", \
             reports[0].nprocs, reports[0].efficiency[i], databases[0], \
             reports[1].efficiency[i], databases[1], \
             reports[2].efficiency[i], databases[2], \
             reports[3].efficiency[i], databases[3], \
-            "nprocs", "eficiência")
+            "nprocs", "eficiência", efficiency_ideal)
 
             
 def main(argv):
