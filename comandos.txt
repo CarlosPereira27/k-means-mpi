@@ -8,14 +8,14 @@ bin/./bin_database_writer "databases/letter-recognition/letter-recognition.data1
 
 <debug_mode> = -d | --debug
 Comandos da aplicação 'kmeans_mpi_app'
-mpirun -np <num_process> bin/./kmeans_mpi_app <path_database_bin> <num_features> <num_classes> <debug_mode>
+mpirun -np <num_process> bin/./kmeans_mpi_app <path_database_bin> <num_features> <k> <debug_mode>
 mpirun -np 4 bin/./kmeans_mpi_app "databases/iris/iris.data.bin" 4 3 -d
 mpirun -np 4 bin/./kmeans_mpi_app "databases/image/segmentation.data.bin" 19 7
 mpirun -np 4 bin/./kmeans_mpi_app "databases/image/segmentation.data10Times.bin" 19 7
 mpirun -np 4 bin/./kmeans_mpi_app "databases/letter-recognition/letter-recognition.data.bin" 16 26
 mpirun -np 4 bin/./kmeans_mpi_app "databases/letter-recognition/letter-recognition.data10Times.bin" 16 26
 
-bin/./kmeans_seq_app <path_database> <class_column> <num_classes> <debug_mode>
+bin/./kmeans_seq_app <path_database> <class_column> <k> <debug_mode>
 bin/./kmeans_seq_app "databases/iris/iris.data" 4 3
 bin/./kmeans_seq_app "databases/image/segmentation.data" 0 7
 bin/./kmeans_seq_app "databases/image/segmentation.data10Times" 0 7
