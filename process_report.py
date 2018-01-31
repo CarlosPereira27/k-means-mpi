@@ -7,6 +7,7 @@ import os
 import matplotlib.pyplot as plt
 import matplotlib
 import numpy as np
+import math
 
 # --------------------------------------------------------
 # ---------------- BEGIN Parâmetros ----------------------
@@ -33,6 +34,10 @@ qty_tests = 10
 
 # Sufixos dos tempos salvos
 out_files_suffix = [ "time_in", "time_report", "time_kmeans", "time_total" ]
+
+
+lw_val = 3
+mew_val = 4
 
 
 # --------------------------------------------------------
@@ -99,9 +104,35 @@ def plotChart(filename, xdata, ydata, xlabel, ylabel):
     @param ylabel : str
         rótulo do eixo y
     """
-    plt.plot(xdata, ydata, 'bo-', lw = 3, mew = 5)
+    plt.plot(xdata, ydata, 'bo-', lw = lw_val, mew = mew_val)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
+    plt.savefig(os.path.join(filename + ".png"), dpi=300)
+    plt.gcf().clear()
+
+def plotChartIdealLine(filename, xdata, ydata, \
+        xlabel, ylabel, yideal):
+    """
+    Desenha um gráfico com quatro linhas para valores de y diferente e insere suas legendas.
+
+    @param filename : str
+        nome do arquivo em que o gráfico será salvo
+    @param xdata : list
+        dados do eixo x
+    @param ydata : list
+        dados do eixo y, linha 0 
+    @param leg : str
+        legenda para a linha 0
+    @param xlabel : str
+        rótulo do eixo x
+    @param ylabel : str
+        rótulo do eixo y
+    """
+    line0, = plt.plot(xdata, ydata, 'bo-', lw = lw_val, mew = mew_val)
+    line1, = plt.plot(xdata, yideal, 'k--', lw = 2.2, mew = 0, label="ideal")
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.legend(handles=[line1]);
     plt.savefig(os.path.join(filename + ".png"), dpi=300)
     plt.gcf().clear()
 
@@ -265,13 +296,23 @@ class Report:
         @param out_files_suffix : list<str>
             lista de sufixos para planilhas de cada tipo de tempo analisado
         """
+        speedup_ideal = []
+        efficiency_ideal = []
+        for nprocs in self.nprocs:
+            speedup_ideal.append(nprocs)
+        for i in range(len(self.nprocs)):
+            efficiency_ideal.append(1)
         for i in range(self.qty_times):
+            log_time_mean = []
+            N = len(self.time_mean[i])
+            for l in range(N):
+                log_time_mean.append(math.log(self.time_mean[i][l]))
             plotChart(pathfile[:-4] + "_" + out_files_suffix[i] + "_mean", self.nprocs, \
-                self.time_mean[i], "nprocs", "tempo")
-            plotChart(pathfile[:-4] + "_" + out_files_suffix[i] + "_speedup", self.nprocs, \
-                self.speedup[i], "nprocs", "speedup")
-            plotChart(pathfile[:-4] + "_" + out_files_suffix[i] + "_efficiency", \
-                self.nprocs, self.efficiency[i], "nprocs", "eficiência")
+                log_time_mean, "nprocs", "log(tempo)")
+            plotChartIdealLine(pathfile[:-4] + "_" + out_files_suffix[i] + "_speedup", \
+                self.nprocs, self.speedup[i], "nprocs", "speedup", speedup_ideal)
+            plotChartIdealLine(pathfile[:-4] + "_" + out_files_suffix[i] + "_efficiency", \
+                self.nprocs, self.efficiency[i], "nprocs", "eficiência", efficiency_ideal)
 
 def plotChartGeneral(filename, xdata, ydata0, leg0, ydata1, leg1, ydata2, leg2, \
         ydata3, leg3, xlabel, ylabel):
@@ -303,8 +344,6 @@ def plotChartGeneral(filename, xdata, ydata0, leg0, ydata1, leg1, ydata2, leg2, 
     @param ylabel : str
         rótulo do eixo y
     """
-    lw_val = 3
-    mew_val = 4
     line0, = plt.plot(xdata, ydata0, 'bo-', lw = lw_val, mew = mew_val, label=leg0)
     line1, = plt.plot(xdata, ydata1, 'ro-', lw = lw_val, mew = mew_val, label=leg1)
     line2, = plt.plot(xdata, ydata2, 'yo-', lw = lw_val, mew = mew_val, label=leg2)
@@ -345,8 +384,6 @@ def plotChartGeneralIdealLine(filename, xdata, ydata0, leg0, ydata1, leg1, ydata
     @param ylabel : str
         rótulo do eixo y
     """
-    lw_val = 3
-    mew_val = 4
     line0, = plt.plot(xdata, ydata0, 'bo-', lw = lw_val, mew = mew_val, label=leg0)
     line1, = plt.plot(xdata, ydata1, 'ro-', lw = lw_val, mew = mew_val, label=leg1)
     line2, = plt.plot(xdata, ydata2, 'yo-', lw = lw_val, mew = mew_val, label=leg2)
@@ -373,12 +410,19 @@ def generateGeneralCharts(reports):
         efficiency_ideal.append(1)
     qty_times = len(out_files_suffix)
     for i in range(qty_times):
+        log_time_mean_list = []
+        for k in range(4):
+                N = len(reports[k].time_mean[i])
+                log_time_mean_list.append([])
+                for l in range(N):
+                    log_time_mean_list[k].append(math.log(reports[k].time_mean[i][l]))
+
         plotChartGeneral(directory_report + "report_" + out_files_suffix[i] + "_mean", \
-            reports[0].nprocs, reports[0].time_mean[i], databases[0], \
-            reports[1].time_mean[i], databases[1], \
-            reports[2].time_mean[i], databases[2], \
-            reports[3].time_mean[i], databases[3], \
-            "nprocs", "tempo")
+            reports[0].nprocs, log_time_mean_list[0], databases[0], \
+            log_time_mean_list[1], databases[1], \
+            log_time_mean_list[2], databases[2], \
+            log_time_mean_list[3], databases[3], \
+            "nprocs", "log(tempo)")
         plotChartGeneralIdealLine(directory_report + "report_" + out_files_suffix[i] + "_speedup", \
             reports[0].nprocs, reports[0].speedup[i], databases[0], \
             reports[1].speedup[i], databases[1], \
@@ -431,8 +475,8 @@ def main(argv):
             index += 1
 
         file.close()
-        #report.generateFinalReportCsv(pathfile, out_files_suffix)
-        #report.generateCharts(pathfile, out_files_suffix)
+        report.generateFinalReportCsv(pathfile, out_files_suffix)
+        report.generateCharts(pathfile, out_files_suffix)
         reports.append(report)
     generateGeneralCharts(reports)
 
